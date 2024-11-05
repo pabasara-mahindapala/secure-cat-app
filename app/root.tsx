@@ -18,6 +18,7 @@ import {
 import appStylesHref from "./app.css?url";
 import { createEmptyCat, getCats } from "./data";
 import { useEffect } from "react";
+import { authenticator } from "./utils/asgardeo.server";
 
 export const action = async () => {
   const cat = await createEmptyCat();
@@ -34,11 +35,15 @@ export const loader = async ({
   const url = new URL(request.url);
   const q = url.searchParams.get("q");
   const cats = await getCats(q);
-  return json({ cats, q });
+
+  let user = await authenticator.isAuthenticated(request);
+  let isLoggedIn = !!user;
+
+  return json({ cats, q, isLoggedIn });
 };
 
 export default function App() {
-  const { cats, q } = useLoaderData<typeof loader>();
+  const { cats, q, isLoggedIn } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const submit = useSubmit();
   const searching =
@@ -139,6 +144,13 @@ export default function App() {
           }
           id="detail">
           <Outlet />
+          <div>
+            {isLoggedIn && (
+              <Form action="/auth/logout" method="post">
+                <button>Logout</button>
+              </Form>
+            )}
+          </div>
         </div>
         <ScrollRestoration />
         <Scripts />
