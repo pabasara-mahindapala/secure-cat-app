@@ -46,6 +46,7 @@ export default function App() {
   const { cats, q, isLoggedIn } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const submit = useSubmit();
+
   const searching =
     navigation.location &&
     new URLSearchParams(navigation.location.search).has(
@@ -68,74 +69,76 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <div id="sidebar">
-          <h1>Cats</h1>
-          <div>
-            <Form id="search-form"
-              onChange={(event) => {
-                const isFirstSearch = q === null;
-                submit(event.currentTarget, {
-                  replace: !isFirstSearch,
-                });
-              }}
-              role="search">
-              <input
-                id="q"
-                aria-label="Search cats"
-                className={searching ? "loading" : ""}
-                defaultValue={q || ""}
-                placeholder="Search"
-                type="search"
-                name="q"
-              />
-              <div
-                aria-hidden
-                hidden={!searching}
-                id="search-spinner"
-              />
-            </Form>
-            <Form method="post">
-              <button type="submit">New</button>
-            </Form>
+        {isLoggedIn && (
+          <div id="sidebar">
+            <h1>Cats</h1>
+            <div>
+              <Form id="search-form"
+                onChange={(event) => {
+                  const isFirstSearch = q === null;
+                  submit(event.currentTarget, {
+                    replace: !isFirstSearch,
+                  });
+                }}
+                role="search">
+                <input
+                  id="q"
+                  aria-label="Search cats"
+                  className={searching ? "loading" : ""}
+                  defaultValue={q || ""}
+                  placeholder="Search"
+                  type="search"
+                  name="q"
+                />
+                <div
+                  aria-hidden
+                  hidden={!searching}
+                  id="search-spinner"
+                />
+              </Form>
+              <Form method="post">
+                <button type="submit">New</button>
+              </Form>
+            </div>
+            <nav>
+              {cats.length ? (
+                <ul>
+                  {cats.map((cat) => (
+                    <li key={cat.id}>
+                      <NavLink
+                        className={({ isActive, isPending }) =>
+                          isActive
+                            ? "active"
+                            : isPending
+                              ? "pending"
+                              : ""
+                        }
+                        to={`cats/${cat.id}`}
+                      >
+                        <Link to={`cats/${cat.id}`}>
+                          {cat.first || cat.last ? (
+                            <>
+                              {cat.first} {cat.last}
+                            </>
+                          ) : (
+                            <i>No Name</i>
+                          )}{" "}
+                          {cat.favorite ? (
+                            <span>★</span>
+                          ) : null}
+                        </Link>
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  <i>No cats</i>
+                </p>
+              )}
+            </nav>
           </div>
-          <nav>
-            {cats.length ? (
-              <ul>
-                {cats.map((cat) => (
-                  <li key={cat.id}>
-                    <NavLink
-                      className={({ isActive, isPending }) =>
-                        isActive
-                          ? "active"
-                          : isPending
-                            ? "pending"
-                            : ""
-                      }
-                      to={`cats/${cat.id}`}
-                    >
-                      <Link to={`cats/${cat.id}`}>
-                        {cat.first || cat.last ? (
-                          <>
-                            {cat.first} {cat.last}
-                          </>
-                        ) : (
-                          <i>No Name</i>
-                        )}{" "}
-                        {cat.favorite ? (
-                          <span>★</span>
-                        ) : null}
-                      </Link>
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>
-                <i>No cats</i>
-              </p>
-            )}
-          </nav>
-        </div>
+        )}
         <div
           className={
             navigation.state === "loading" && !searching

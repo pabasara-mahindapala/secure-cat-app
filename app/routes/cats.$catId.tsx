@@ -1,9 +1,10 @@
-import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, json, LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { Form, useFetcher, useLoaderData } from "@remix-run/react";
 import type { FunctionComponent } from "react";
 
 import { getCat, updateCat, type CatRecord } from "../data";
 import invariant from "tiny-invariant";
+import { authenticator } from "~/utils/asgardeo.server";
 
 export const action = async ({
   params,
@@ -17,8 +18,15 @@ export const action = async ({
 };
 
 export const loader = async ({
-  params,
+  params, request
 }: LoaderFunctionArgs) => {
+  let user = await authenticator.isAuthenticated(request);
+  let isLoggedIn = !!user;
+
+  if (!isLoggedIn) {
+    return redirect("/login");
+  }
+
   invariant(params.catId, "Missing catId param");
   const cat = await getCat(params.catId);
   if (!cat) {

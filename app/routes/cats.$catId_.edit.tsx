@@ -4,6 +4,7 @@ import { Form, useLoaderData, useNavigate } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import { getCat, updateCat } from "../data";
+import { authenticator } from "~/utils/asgardeo.server";
 
 export const action = async ({
   params,
@@ -17,8 +18,15 @@ export const action = async ({
 };
 
 export const loader = async ({
-  params,
+  params, request
 }: LoaderFunctionArgs) => {
+  let user = await authenticator.isAuthenticated(request);
+  let isLoggedIn = !!user;
+
+  if (!isLoggedIn) {
+    return redirect("/login");
+  }
+
   invariant(params.catId, "Missing catId param");
   const cat = await getCat(params.catId);
   if (!cat) {
